@@ -8,7 +8,8 @@ Type=simple
 User=ec2-user
 Group=ec2-user
 WorkingDirectory=/opt/student-registration
-EnvironmentFile=/etc/student-registration.env
+EnvironmentFile=-/etc/student-registration.env
+EnvironmentFile=-/opt/student-registration/.env
 
 # Execute Gunicorn using the virtual environment
 ExecStart=/opt/student-registration/venv/bin/gunicorn \
@@ -28,8 +29,6 @@ TimeoutStopSec=10
 
 # Security sandboxing
 PrivateTmp=true
-ProtectSystem=full
-ProtectHome=read-only
 
 [Install]
 WantedBy=multi-user.target

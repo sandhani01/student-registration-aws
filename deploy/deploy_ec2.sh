@@ -146,6 +146,7 @@ echo "[4/6] Setting up systemd service student-registration..."
 cat <<EOF > /etc/systemd/system/student-registration.service
 [Unit]
 Description=Student Registration System (Gunicorn WSGI Application)
+Documentation=https://github.com/aws/
 After=network.target
 
 [Service]
@@ -153,14 +154,15 @@ Type=simple
 User=ec2-user
 Group=ec2-user
 WorkingDirectory=${APP_DIR}
-EnvironmentFile=${SYS_ENV}
+EnvironmentFile=-${SYS_ENV}
+EnvironmentFile=-${APP_ENV}
 ExecStart=${VENV_DIR}/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 --timeout 60 --access-logfile ${LOG_DIR}/access.log --error-logfile ${LOG_DIR}/error.log --capture-output app:app
 Restart=always
 RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=10
 
 PrivateTmp=true
-ProtectSystem=full
-ProtectHome=read-only
 
 [Install]
 WantedBy=multi-user.target

@@ -1,307 +1,88 @@
-{% extends "base.html" %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Registration{% if roll_no %} - {{ roll_no }}{% endif %}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+           background: #f3f5f9; color: #1f2933; }
+    .wrap { max-width: 560px; margin: 40px auto; padding: 0 16px; }
+    .card { background: #fff; border-radius: 10px; padding: 28px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .sub { margin: 0 0 20px; color: #616e7c; font-size: .9rem; }
+    label { display: block; font-weight: 600; margin: 14px 0 6px; font-size: .92rem; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd2d9;
+            border-radius: 6px; font: inherit; }
+    textarea { resize: vertical; min-height: 70px; }
+    button { margin-top: 22px; width: 100%; padding: 12px; border: 0; border-radius: 6px;
+             background: #ff9900; color: #111; font-weight: 700; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #ec8c00; }
+    .msg { padding: 12px 14px; border-radius: 6px; margin-bottom: 18px; font-size: .92rem; }
+    .ok { background: #e3f9e5; border: 1px solid #57ae5b; }
+    .err { background: #ffeeee; border: 1px solid #e66a6a; }
+    .msg ul { margin: 0; padding-left: 18px; }
+    table { border-collapse: collapse; margin-top: 8px; width: 100%; }
+    td { padding: 4px 10px 4px 0; vertical-align: top; }
+    td:first-child { font-weight: 600; color: #475569; width: 140px; }
+    .foot { text-align: center; color: #9aa5b1; font-size: .85rem; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Student Registration</h1>
+      <p class="sub">Stored in Amazon DynamoDB &middot; Notified via Amazon SNS</p>
 
-{% block title %}Register Student | AWS Student Portal{% endblock %}
+      {% if errors %}
+      <div class="msg err"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+      {% endif %}
 
-{% block content %}
-<div class="container page-container">
+      {% if student %}
+      <div class="msg ok" id="result">
+        <strong>Registration Successfully Processed</strong>
+        <p style="margin: 4px 0 10px 0; color: #2e7d32; font-size: 0.9rem;">Status: {{ status }}</p>
+        <table>
+          <tr><td>Roll Number</td><td>{{ student.roll_no }}</td></tr>
+          <tr><td>Name</td><td>{{ student.name }}</td></tr>
+          <tr><td>Course</td><td>{{ student.course }}</td></tr>
+          <tr><td>Address</td><td>{{ student.address }}</td></tr>
+          <tr><td>Email</td><td>{{ student.email }}</td></tr>
+          <tr><td>Year</td><td>{{ student.year }}</td></tr>
+          {% if message_id %}<tr><td>SNS Message ID</td><td id="sns-message-id"><code>{{ message_id }}</code></td></tr>{% endif %}
+        </table>
+      </div>
+      {% endif %}
 
-    <!-- Top Architecture & Lab Banner -->
-    <section class="lab-context-banner">
-        <div class="context-pill">
-            <span class="pill-dot"></span>
-            <strong>AWS Region:</strong> <code>{{ aws_region }}</code>
-        </div>
-        <div class="context-pill">
-            <span class="pill-dot"></span>
-            <strong>DynamoDB Table:</strong> <code>{{ table_name }}</code>
-        </div>
-        <div class="context-pill">
-            <span class="pill-dot"></span>
-            <strong>SNS Topic:</strong> 
-            {% if sns_topic_display %}
-                <code>{{ sns_topic_display }}</code>
-            {% else %}
-                <span class="text-warning font-medium">Topic ARN Pending</span>
-            {% endif %}
-        </div>
-    </section>
+      {% set f = form or {} %}
+      <form method="post" action="/register">
+        <label for="roll_no">University Roll Number</label>
+        <input id="roll_no" name="roll_no" required maxlength="40" value="{{ f.roll_no or '' }}" placeholder="e.g. 24BCA7871">
 
-    <!-- Main Registration Section -->
-    <div class="registration-layout">
-        
-        <!-- Registration Card -->
-        <div class="card registration-card">
-            <div class="card-header">
-                <div class="header-icon-box">
-                    <svg class="header-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="card-title">Student Registration</h1>
-                    <p class="card-description">Please enter accurate details to register your student profile in Amazon DynamoDB and trigger the SNS notification service.</p>
-                </div>
-            </div>
+        <label for="name">Student Name</label>
+        <input id="name" name="name" required maxlength="100" value="{{ f.name or '' }}" placeholder="Student Name">
 
-            <!-- Dynamic Alert Box for Real-time Feedback -->
-            <div id="statusAlert" class="alert-box d-none" role="alert" aria-live="polite">
-                <div class="alert-icon-wrapper">
-                    <span id="alertIcon"></span>
-                </div>
-                <div class="alert-content">
-                    <strong id="alertHeading" class="alert-heading">Notice</strong>
-                    <p id="alertMessage" class="alert-message"></p>
-                </div>
-                <button type="button" class="alert-close" onclick="dismissAlert()" aria-label="Close message">&times;</button>
-            </div>
+        <label for="course">Course Name</label>
+        <input id="course" name="course" required maxlength="100" value="{{ f.course or '' }}" placeholder="Course Name">
 
-            <!-- Registration Form -->
-            <form id="registrationForm" action="{{ url_for('register') }}" method="POST" class="registration-form" novalidate>
-                
-                <div class="form-grid">
-                    
-                    <!-- 1. University Roll Number -->
-                    <div class="form-group">
-                        <label for="roll_no" class="form-label">
-                            University Roll Number <span class="required-star">*</span>
-                        </label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="16" rx="3"></rect>
-                                    <circle cx="9" cy="10" r="2"></circle>
-                                    <line x1="15" y1="8" x2="17" y2="8"></line>
-                                    <line x1="15" y1="12" x2="17" y2="12"></line>
-                                    <line x1="7" y1="16" x2="17" y2="16"></line>
-                                </svg>
-                            </span>
-                            <input 
-                                type="text" 
-                                id="roll_no" 
-                                name="roll_no" 
-                                class="form-input" 
-                                placeholder="{% if roll_no_placeholder and not roll_no_placeholder.startswith('<') %}e.g. {{ roll_no_placeholder }}{% else %}e.g. 24BCA7871{% endif %}" 
-                                required 
-                                maxlength="30"
-                                autocomplete="off"
-                                aria-describedby="rollNoHelp rollNoError"
-                            >
-                        </div>
-                        <div class="field-helper" id="rollNoHelp">Partition key in DynamoDB. Must be unique.</div>
-                        <div class="field-error" id="rollNoError" role="alert"></div>
-                    </div>
+        <label for="address">Address</label>
+        <textarea id="address" name="address" required maxlength="300" placeholder="Residential Address">{{ f.address or '' }}</textarea>
 
-                    <!-- 2. Student Full Name -->
-                    <div class="form-group">
-                        <label for="name" class="form-label">
-                            Student Name <span class="required-star">*</span>
-                        </label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                            </span>
-                            <input 
-                                type="text" 
-                                id="name" 
-                                name="name" 
-                                class="form-input" 
-                                placeholder="e.g. Jane Doe" 
-                                required 
-                                maxlength="100"
-                                autocomplete="name"
-                                aria-describedby="nameHelp nameError"
-                            >
-                        </div>
-                        <div class="field-helper" id="nameHelp">Enter full legal name as registered with university.</div>
-                        <div class="field-error" id="nameError" role="alert"></div>
-                    </div>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required maxlength="120" value="{{ f.email or '' }}" placeholder="email@university.edu">
 
-                    <!-- 3. Course Name -->
-                    <div class="form-group">
-                        <label for="course" class="form-label">
-                            Course Name <span class="required-star">*</span>
-                        </label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                </svg>
-                            </span>
-                            <input 
-                                type="text" 
-                                id="course" 
-                                name="course" 
-                                class="form-input" 
-                                placeholder="e.g. B.Tech Computer Science" 
-                                required 
-                                maxlength="100"
-                                aria-describedby="courseHelp courseError"
-                            >
-                        </div>
-                        <div class="field-helper" id="courseHelp">Degree program and major specialization.</div>
-                        <div class="field-error" id="courseError" role="alert"></div>
-                    </div>
+        <label for="year">Year of Study</label>
+        <select id="year" name="year" required>
+          <option value="">Select year</option>
+          {% for y in years %}<option value="{{ y }}" {% if f.year == y %}selected{% endif %}>{{ y }}</option>{% endfor %}
+        </select>
 
-                    <!-- 4. Year of Study -->
-                    <div class="form-group">
-                        <label for="year" class="form-label">
-                            Year of Study <span class="required-star">*</span>
-                        </label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                            </span>
-                            <select id="year" name="year" class="form-select" required aria-describedby="yearHelp yearError">
-                                <option value="" disabled selected>Select Year of Study...</option>
-                                <option value="Year 1">Year 1 (Freshman)</option>
-                                <option value="Year 2">Year 2 (Sophomore)</option>
-                                <option value="Year 3">Year 3 (Junior)</option>
-                                <option value="Year 4">Year 4 (Senior)</option>
-                            </select>
-                        </div>
-                        <div class="field-helper" id="yearHelp">Select current academic year (Years 1 to 4).</div>
-                        <div class="field-error" id="yearError" role="alert"></div>
-                    </div>
-
-                    <!-- 5. Student Email -->
-                    <div class="form-group form-group-full">
-                        <label for="email" class="form-label">
-                            Email Address <span class="required-star">*</span>
-                        </label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                    <polyline points="22,6 12,13 2,6"></polyline>
-                                </svg>
-                            </span>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                name="email" 
-                                class="form-input" 
-                                placeholder="student.name@university.edu" 
-                                required 
-                                maxlength="120"
-                                autocomplete="email"
-                                aria-describedby="emailHelp emailError"
-                            >
-                        </div>
-                        <div class="field-helper" id="emailHelp">Must be a valid email format. Used for academic communication.</div>
-                        <div class="field-error" id="emailError" role="alert"></div>
-                    </div>
-
-                    <!-- 6. Address -->
-                    <div class="form-group form-group-full">
-                        <label for="address" class="form-label">
-                            Residential Address <span class="required-star">*</span>
-                        </label>
-                        <div class="input-wrapper">
-                            <textarea 
-                                id="address" 
-                                name="address" 
-                                class="form-textarea" 
-                                rows="3" 
-                                placeholder="Enter permanent home address or current campus residence" 
-                                required
-                                maxlength="500"
-                                aria-describedby="addressHelp addressError"
-                            ></textarea>
-                        </div>
-                        <div class="field-helper" id="addressHelp">Include street, city, state/province, and postal code.</div>
-                        <div class="field-error" id="addressError" role="alert"></div>
-                    </div>
-
-                </div>
-
-                <!-- Submission Action Area -->
-                <div class="form-actions">
-                    <button type="submit" id="submitBtn" class="btn btn-primary btn-submit">
-                        <span class="btn-spinner d-none" id="btnSpinner" aria-hidden="true"></span>
-                        <svg class="btn-icon" id="btnIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        <span id="btnText">Register Student</span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                        Clear Form
-                    </button>
-                </div>
-
-            </form>
-        </div>
-
-        <!-- Architecture & Flow Sidebar -->
-        <aside class="sidebar-guide">
-            <div class="card guide-card">
-                <h2 class="guide-title">
-                    <svg class="guide-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                        <polyline points="2 17 12 22 22 17"></polyline>
-                        <polyline points="2 12 12 17 22 12"></polyline>
-                    </svg>
-                    Lab Execution Pipeline
-                </h2>
-                
-                <ol class="flow-steps">
-                    <li class="flow-step">
-                        <span class="step-badge">1</span>
-                        <div class="step-content">
-                            <strong>Validation Layer</strong>
-                            <p>All 6 inputs validated locally in browser & verified on Flask backend.</p>
-                        </div>
-                    </li>
-                    <li class="flow-step">
-                        <span class="step-badge">2</span>
-                        <div class="step-content">
-                            <strong>Amazon DynamoDB</strong>
-                            <p>Conditional write with <code>attribute_not_exists(roll_no)</code> guarantees zero duplicates.</p>
-                        </div>
-                    </li>
-                    <li class="flow-step">
-                        <span class="step-badge">3</span>
-                        <div class="step-content">
-                            <strong>Amazon SNS Notification</strong>
-                            <p>Dispatches publication to topic ARN only after DynamoDB write succeeds.</p>
-                        </div>
-                    </li>
-                    <li class="flow-step">
-                        <span class="step-badge">4</span>
-                        <div class="step-content">
-                            <strong>Subscriber Inbox</strong>
-                            <p>Confirmed email subscribers receive formatted registration notification.</p>
-                        </div>
-                    </li>
-                </ol>
-
-                <div class="security-callout">
-                    <div class="callout-header">
-                        <svg class="callout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                        </svg>
-                        <strong>Security Safeguard</strong>
-                    </div>
-                    <p>EC2 communicates with DynamoDB and SNS using the AWS Academy Learner Lab IAM Instance Profile. No credentials are stored on disk or in Git.</p>
-                </div>
-            </div>
-        </aside>
-
+        <button type="submit">Register</button>
+      </form>
     </div>
-
-</div>
-{% endblock %}
+    {% if roll_no %}<p class="foot">Deployed by {{ roll_no }} &middot; AWS Academy Learner Lab</p>{% endif %}
+  </div>
+</body>
+</html>
