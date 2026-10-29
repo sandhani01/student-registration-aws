@@ -1,0 +1,82 @@
+# ==============================================================================
+# Git Ignore Configuration - Student Registration System on AWS
+# ==============================================================================
+
+# 1. Environment & Local Configuration (Never commit secrets or student credentials)
+.env
+.env*.local
+.env.production
+.env.development
+!.env.example
+
+# 2. Private Keys, Certificates, and AWS Credential Downloads
+*.pem
+*.key
+*.pkcs12
+*.pfx
+*.cer
+*.crt
+credentials
+credentials.csv
+*id_rsa*
+*id_ed25519*
+
+# 3. Python Bytecode & Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 4. Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+
+# 5. Unit Testing, Coverage & Type Checking
+.pytest_cache/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+htmlcov/
+.mypy_cache/
+.pyre/
+.pytype/
+
+# 6. Operating System & Editor Artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

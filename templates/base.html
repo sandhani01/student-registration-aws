@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Registration System | AWS Academy{% endblock %}</title>
+    <meta name="description" content="A cloud-native student registration portal deployed on AWS EC2, Amazon DynamoDB, and Amazon SNS.">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="container header-container">
+            <div class="brand-group">
+                <a href="{{ url_for('index') }}" class="brand-logo">
+                    <!-- Graduation Cap Icon -->
+                    <svg class="brand-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                        <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                    </svg>
+                    <div class="brand-text">
+                        <span class="brand-title">Student Portal</span>
+                        <span class="brand-subtitle">AWS Academy Learner Lab</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="header-badges">
+                <span class="badge badge-aws">
+                    <svg class="badge-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                    </svg>
+                    AWS Cloud-Native
+                </span>
+                <a href="{{ url_for('health') }}" target="_blank" class="badge badge-health" title="View Health Check JSON">
+                    <span class="status-indicator"></span>
+                    API Status
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="container footer-container">
+            <div class="footer-info">
+                <p class="footer-title">AWS Academy Learner Lab Practical Project</p>
+                <p class="footer-subtitle">Architecture: Flask &bull; Amazon DynamoDB (Pay-Per-Request) &bull; Amazon SNS &bull; Amazon EC2 (AL2023)</p>
+            </div>
+            <div class="footer-meta">
+                <span>Secure &bull; Least-Privilege IAM &bull; No Credentials Exposed</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,35 @@
+[Unit]
+Description=Student Registration System (Gunicorn WSGI Application)
+Documentation=https://github.com/aws/
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/opt/student-registration
+EnvironmentFile=/etc/student-registration.env
+
+# Execute Gunicorn using the virtual environment
+ExecStart=/opt/student-registration/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:5000 \
+    --timeout 60 \
+    --access-logfile /var/log/student-registration/access.log \
+    --error-logfile /var/log/student-registration/error.log \
+    --capture-output \
+    app:app
+
+# Restart policies for high availability
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+# Security sandboxing
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

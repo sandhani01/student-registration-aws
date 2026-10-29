@@ -1,0 +1,8 @@
+# Student Registration System - Dependencies
+# AWS Academy Learner Lab Project
+
+Flask>=3.0.0,<4.0.0
+boto3>=1.34.0,<2.0.0
+gunicorn>=21.2.0,<24.0.0
+python-dotenv>=1.0.0,<2.0.0
+pytest>=8.0.0,<10.0.0

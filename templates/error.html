@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_title }} | AWS Student Portal{% endblock %}
+
+{% block content %}
+<div class="container page-container">
+
+    <div class="card error-card">
+        
+        <!-- Error Status Icon -->
+        <div class="error-icon-box {% if status_code == 409 %}error-icon-amber{% else %}error-icon-red{% endif %}">
+            {% if status_code == 409 %}
+                <!-- Conflict / Duplicate Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            {% else %}
+                <!-- Critical / Alert Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            {% endif %}
+        </div>
+
+        <div class="error-header">
+            <span class="status-code-pill">Status Code: {{ status_code }}</span>
+            <h1 class="error-main-title">{{ error_title }}</h1>
+        </div>
+
+        <div class="error-body">
+            <p class="error-message-text">{{ error_message }}</p>
+
+            {% if status_code == 409 %}
+                <div class="error-technical-box">
+                    <h2 class="tech-title">DynamoDB Safeguard Details:</h2>
+                    <p class="tech-description">
+                        This error was enforced by Amazon DynamoDB using the condition expression 
+                        <code>attribute_not_exists(roll_no)</code>. 
+                        In accordance with the assignment specifications, duplicate university roll numbers are strictly rejected to ensure primary key uniqueness.
+                    </p>
+                </div>
+            {% elif status_code == 500 %}
+                <div class="error-technical-box">
+                    <h2 class="tech-title">Learner Lab Troubleshooting Steps:</h2>
+                    <ul class="tech-list">
+                        <li>Verify that the DynamoDB table exists in the configured AWS Region (e.g. <code>us-east-1</code>).</li>
+                        <li>Ensure the EC2 instance has the IAM instance profile (<code>LabRole</code>) attached.</li>
+                        <li>Verify network security groups and outbound HTTPS rules (Port 443 to AWS endpoints).</li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Return to Registration Form
+            </a>
+            <a href="{{ url_for('health') }}" target="_blank" class="btn btn-secondary">
+                Inspect Health Endpoint
+            </a>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

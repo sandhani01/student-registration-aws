@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Registration Confirmed | AWS Student Portal{% endblock %}
+
+{% block content %}
+<div class="container page-container">
+
+    <div class="result-layout">
+
+        <!-- Top Success Banner Card -->
+        <div class="card result-hero-card">
+            <div class="success-icon-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h1 class="result-title">Registration Successfully Processed</h1>
+            <p class="result-subtitle">
+                The student profile has been validated and persisted to Amazon DynamoDB. Notification workflow dispatched to Amazon SNS.
+            </p>
+        </div>
+
+        <!-- Warning Card if SNS failed after DynamoDB saved -->
+        {% if sns_warning %}
+        <div class="alert-box alert-warning-box" role="alert">
+            <div class="alert-icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <div class="alert-content">
+                <strong class="alert-heading">Notice on SNS Notification:</strong>
+                <p class="alert-message">{{ sns_warning }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Two-Column Grid: Student Details & AWS Evidence -->
+        <div class="result-grid">
+            
+            <!-- Student Record Details Card -->
+            <div class="card details-card">
+                <div class="card-header border-bottom">
+                    <div class="header-icon-box header-icon-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="card-title text-base">Submitted Student Profile</h2>
+                        <span class="text-muted text-xs">Stored in DynamoDB</span>
+                    </div>
+                </div>
+
+                <div class="data-table">
+                    <div class="data-row">
+                        <span class="data-label">University Roll Number</span>
+                        <span class="data-value highlight-badge font-mono">{{ student.roll_no }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Student Name</span>
+                        <span class="data-value font-semibold">{{ student.name }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Course Name</span>
+                        <span class="data-value">{{ student.course }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Year of Study</span>
+                        <span class="data-value">{{ student.year }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Email Address</span>
+                        <span class="data-value">{{ student.email }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Residential Address</span>
+                        <span class="data-value">{{ student.address }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Registered At (UTC)</span>
+                        <span class="data-value font-mono text-xs">{{ student.registered_at }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AWS Cloud Infrastructure Evidence Card -->
+            <div class="card details-card">
+                <div class="card-header border-bottom">
+                    <div class="header-icon-box header-icon-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="card-title text-base">AWS Execution Evidence</h2>
+                        <span class="text-muted text-xs">DynamoDB &amp; SNS Audit Trail</span>
+                    </div>
+                </div>
+
+                <!-- DynamoDB Section -->
+                <div class="aws-evidence-block">
+                    <div class="evidence-header">
+                        <span class="evidence-tag tag-dynamodb">Amazon DynamoDB</span>
+                        <span class="badge badge-success-pill">Item Stored</span>
+                    </div>
+                    <div class="data-table">
+                        <div class="data-row">
+                            <span class="data-label">Table Name</span>
+                            <span class="data-value font-mono text-xs">{{ dynamodb_table }}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Partition Key (roll_no)</span>
+                            <span class="data-value font-mono text-xs">{{ student.roll_no }}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Conditional Check</span>
+                            <span class="data-value text-success text-xs font-semibold">
+                                attribute_not_exists(roll_no) &check;
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SNS Section -->
+                <div class="aws-evidence-block">
+                    <div class="evidence-header">
+                        <span class="evidence-tag tag-sns">Amazon SNS</span>
+                        {% if sns_published %}
+                            <span class="badge badge-success-pill">Published</span>
+                        {% else %}
+                            <span class="badge badge-amber-pill">Not Dispatched</span>
+                        {% endif %}
+                    </div>
+                    <div class="data-table">
+                        <div class="data-row">
+                            <span class="data-label">Topic ARN</span>
+                            <span class="data-value font-mono text-xs truncate" title="{{ sns_topic_arn }}">
+                                {{ sns_topic_arn or 'Not Configured' }}
+                            </span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">SNS Message ID</span>
+                            <span class="data-value font-mono text-xs text-primary font-bold">
+                                {{ sns_message_id or 'N/A' }}
+                            </span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Delivery Note</span>
+                            <span class="data-value text-xs text-secondary">
+                                An SNS Message ID confirms publication to the topic. Email is received only by subscribers who confirmed their subscription.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="result-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                Register Another Student
+            </a>
+            <a href="{{ url_for('health') }}" target="_blank" class="btn btn-secondary">
+                View Server Health JSON
+            </a>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
