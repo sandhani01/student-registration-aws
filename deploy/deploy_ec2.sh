@@ -266,6 +266,6 @@ fi
 
 echo "=========================================================="
 echo "DEPLOYMENT COMPLETE!"
-echo "Public Website URL: http://35.172.228.144/"
-echo "Health Endpoint:    http://35.172.228.144/health"
+echo "Public Website URL: http://100.48.182.11/"
+echo "Health Endpoint:    http://100.48.182.11/health"
 echo "=========================================================="

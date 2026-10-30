@@ -40,7 +40,7 @@ jobs:
     env:
       AWS_REGION: "us-east-1"
       EC2_INSTANCE_ID: "i-09a305ec90d53a8ba"
-      EC2_PUBLIC_IP: "35.172.228.144"
+      EC2_PUBLIC_IP: "100.48.182.11"
 
     steps:
       - name: Checkout Code
