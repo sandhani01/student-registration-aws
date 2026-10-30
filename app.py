@@ -109,11 +109,25 @@ def register():
             return {"success": False, "error_type": "ValidationError", "message": errors[0]}, 400
         return render(400, errors=errors, form=data)
 
+    table = get_dynamodb_table()
+    pk_name = "roll_no"
+    try:
+        if hasattr(table, "key_schema") and table.key_schema:
+            for k in table.key_schema:
+                if k.get("KeyType") == "HASH":
+                    pk_name = k.get("AttributeName")
+                    break
+    except Exception:
+        pk_name = "roll_no"
+
     item = dict(data, registered_at=datetime.now(timezone.utc).isoformat())
+    item[pk_name] = data["roll_no"]
+    item["roll_no"] = data["roll_no"]
+    item["24bca7871"] = data["roll_no"]
+
     try:
         # Refuse to silently overwrite an existing registration.
-        table = get_dynamodb_table()
-        table.put_item(Item=item, ConditionExpression="attribute_not_exists(roll_no)")
+        table.put_item(Item=item, ConditionExpression=f"attribute_not_exists({pk_name})")
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             err_msg = f"Roll number {data['roll_no']} is already registered."
