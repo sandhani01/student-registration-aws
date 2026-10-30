@@ -125,9 +125,16 @@ def register():
     item["roll_no"] = data["roll_no"]
     item["24bca7871"] = data["roll_no"]
 
+    put_kwargs = {"Item": item}
+    if pk_name == "roll_no":
+        put_kwargs["ConditionExpression"] = "attribute_not_exists(roll_no)"
+    else:
+        put_kwargs["ConditionExpression"] = "attribute_not_exists(#pk)"
+        put_kwargs["ExpressionAttributeNames"] = {"#pk": pk_name}
+
     try:
         # Refuse to silently overwrite an existing registration.
-        table.put_item(Item=item, ConditionExpression=f"attribute_not_exists({pk_name})")
+        table.put_item(**put_kwargs)
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             err_msg = f"Roll number {data['roll_no']} is already registered."
